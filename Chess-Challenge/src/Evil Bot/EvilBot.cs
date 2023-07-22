@@ -7,48 +7,34 @@ namespace ChessChallenge.Example
     // Plays randomly otherwise.
     public class EvilBot : IChessBot
     {
-        // Piece values: null, pawn, knight, bishop, rook, queen, king
-        int[] pieceValues = { 0, 100, 300, 300, 500, 900, 10000 };
+        uint s_maxDepth = 3;
+        float[] s_pieceValues = { 0, 1, 3, 3, 5, 9 };
+        bool m_isWhite;
 
         public Move Think(Board board, Timer timer)
         {
-            Move[] allMoves = board.GetLegalMoves();
-
-            // Pick a random move to play if nothing better is found
-            Random rng = new();
-            Move moveToPlay = allMoves[rng.Next(allMoves.Length)];
-            int highestValueCapture = 0;
-
-            foreach (Move move in allMoves)
+            m_isWhite = board.IsWhiteToMove;
+            float max = -1024f;
+            Move[] moves = board.GetLegalMoves();
+            Move bestMove = moves[0];
+            for (uint i = 0; i < moves.Length; i++)
             {
-                // Always play checkmate in one
-                if (MoveIsCheckmate(board, move))
-                {
-                    moveToPlay = move;
-                    break;
-                }
-
-                // Find highest value capture
-                Piece capturedPiece = board.GetPiece(move.TargetSquare);
-                int capturedPieceValue = pieceValues[(int)capturedPiece.PieceType];
-
-                if (capturedPieceValue > highestValueCapture)
-                {
-                    moveToPlay = move;
-                    highestValueCapture = capturedPieceValue;
-                }
+                float v = DeltaValue(moves[i], board, 0);
+                if (v > max) { max = v; bestMove = moves[i]; }
             }
-
-            return moveToPlay;
+            return bestMove;
         }
 
-        // Test if this move gives checkmate
-        bool MoveIsCheckmate(Board board, Move move)
+        float DeltaValue(Move move, Board board, uint depth)
         {
+            float value = (m_isWhite == board.IsWhiteToMove ? 1 : -1) * s_pieceValues[(int)board.GetPiece(move.TargetSquare).PieceType];
+            if (depth >= s_maxDepth) return value;
             board.MakeMove(move);
-            bool isMate = board.IsInCheckmate();
+            Move[] moves = board.GetLegalMoves();
+            for (uint i = 0; i < moves.Length; i++)
+                value += DeltaValue(moves[i], board, depth + 1) / moves.Length;
             board.UndoMove(move);
-            return isMate;
+            return value;
         }
     }
 }
