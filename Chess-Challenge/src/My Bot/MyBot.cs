@@ -18,8 +18,8 @@ public class MyBot : IChessBot
             if (v > max) { max = v; bestMove = moves[i]; }
         }
         // Find constant for (time = c * 2 ^ depth)
-        //double c = timer.MillisecondsElapsedThisTurn / System.Math.Pow(2, m_maxDepth);
-        //int newDepth = (int)System.Math.Log(m_timePerTurn / c, 2);
+        //double c = timer.MillisecondsElapsedThisTurn / System.Math.Pow(moves.Length, m_maxDepth);
+        //int newDepth = (int)System.Math.Log(m_timePerTurn / c, moves.Length);
         //m_maxDepth = (uint)System.Math.Clamp(System.Math.Clamp((int)newDepth, m_maxDepth - 1, m_maxDepth + 1), 2, 8);
         return bestMove;
     }
